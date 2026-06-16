@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConvertX  — Browser File Converter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0f11;
+    --surface: #16181c;
+    --surface2: #1e2127;
+    --border: #2a2d35;
+    --border2: #363b45;
+    --text: #f0f1f3;
+    --text2: #8b909c;
+    --text3: #555b69;
+    --accent: #6c63ff;
+    --accent-dim: #6c63ff22;
+    --accent-glow: #6c63ff44;
+    --success: #22c55e;
+    --success-dim: #22c55e1a;
+    --warning: #f59e0b;
+    --warning-dim: #f59e0b1a;
+    --danger: #ef4444;
+    --danger-dim: #ef44441a;
+    --info: #38bdf8;
+    --info-dim: #38bdf81a;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --radius-lg: 16px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+
+  .logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-icon svg { width: 16px; height: 16px; fill: #fff; }
+
+  .badge-private {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    background: var(--success-dim);
+    color: var(--success);
+    border-radius: 99px;
+    border: 1px solid #22c55e33;
+  }
+
+  /* ── LAYOUT ── */
+  .app {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: calc(100vh - 60px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 1rem;
+    position: sticky;
+    top: 60px;
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+  }
+
+  .sidebar-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    text-transform: uppercase;
+    padding: 0 8px;
+    margin-bottom: 6px;
+  }
+
+  .nav-group { margin-bottom: 1.5rem; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--text2);
+    font-size: 13.5px;
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+
+  .nav-item:hover { color: var(--text); background: var(--surface); }
+
+  .nav-item.active {
+    color: var(--accent);
+    background: var(--accent-dim);
+    font-weight: 500;
+  }
+
+  .nav-item .nav-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  .nav-item.active .nav-icon { opacity: 1; }
+
+  .nav-tag {
+    margin-left: auto;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 99px;
+    font-weight: 500;
+  }
+
+  .tag-img { background: #6c63ff22; color: #a89cff; }
+  .tag-doc { background: #38bdf81a; color: #38bdf8; }
+  .tag-data { background: #22c55e1a; color: #22c55e; }
+  .tag-archive { background: #f59e0b1a; color: #f59e0b; }
+
+  /* ── MAIN ── */
+  main {
+    padding: 2rem;
+    max-width: 860px;
+  }
+
+  .page-header {
+    margin-bottom: 1.75rem;
+  }
+
+  .page-header h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .page-header p { color: var(--text2); font-size: 14px; }
+
+  /* ── PANEL ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  /* ── DROP ZONE ── */
+  .drop-zone {
+    border: 1.5px dashed var(--border2);
+    border-radius: var(--radius);
+    padding: 3rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 1.25rem;
+    position: relative;
+  }
+
+  .drop-zone:hover, .drop-zone.over {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .dz-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--surface2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+  }
+
+  .dz-icon svg { width: 24px; height: 24px; }
+
+  .drop-zone h3 { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .drop-zone p { font-size: 13px; color: var(--text2); }
+  .drop-zone span { font-size: 12px; color: var(--text3); }
+
+  /* ── FILE LIST ── */
+  .file-list { margin-bottom: 1.25rem; }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+    font-size: 13px;
+    animation: slideIn 0.2s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .file-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .file-icon svg { width: 16px; height: 16px; }
+
+  .file-icon.img { background: #6c63ff1a; color: #a89cff; }
+  .file-icon.pdf { background: #ef44441a; color: #f87171; }
+  .file-icon.doc { background: #38bdf81a; color: #38bdf8; }
+  .file-icon.data { background: #22c55e1a; color: #22c55e; }
+  .file-icon.zip { background: #f59e0b1a; color: #f59e0b; }
+
+  .file-info { flex: 1; overflow: hidden; }
+  .file-name { font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-size { font-size: 11px; color: var(--text3); }
+
+  .file-status {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 99px;
+    flex-shrink: 0;
+  }
+
+  .st-ready { background: var(--surface); color: var(--text3); border: 1px solid var(--border); }
+  .st-processing { background: var(--warning-dim); color: var(--warning); }
+  .st-done { background: var(--success-dim); color: var(--success); }
+  .st-error { background: var(--danger-dim); color: var(--danger); }
+
+  .file-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text3);
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    transition: color 0.15s;
+  }
+
+  .file-remove:hover { color: var(--danger); }
+  .file-remove svg { width: 14px; height: 14px; }
+
+  /* ── OPTIONS ── */
+  .options-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .opt-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .opt-group label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  select, input[type="range"] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  select:focus, select:hover { border-color: var(--border2); }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    padding: 0;
+    background: var(--border2);
+    cursor: pointer;
+    width: 130px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+  }
+
+  .btn svg { width: 15px; height: 15px; }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .btn-primary:hover { background: #7c74ff; transform: translateY(-1px); box-shadow: 0 4px 16px var(--accent-glow); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .btn-ghost {
+    background: var(--surface2);
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover { color: var(--text); border-color: var(--border2); }
+
+  /* ── PROGRESS ── */
+  .progress-wrap {
+    margin-top: 1rem;
+    display: none;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 6px;
+  }
+
+  .progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.25s;
+  }
+
+  /* ── ZIP CONTENT ── */
+  .zip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .zip-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .zip-count {
+    font-size: 11px;
+    color: var(--text3);
+    padding: 2px 7px;
+    background: var(--surface2);
+    border-radius: 99px;
+    border: 1px solid var(--border);
+  }
+
+  .zip-entries {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    max-height: 350px;
+    overflow-y: auto;
+  }
+
+  .zip-entry {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    transition: background 0.1s;
+  }
+
+  .zip-entry:last-child { border-bottom: none; }
+  .zip-entry:hover { background: var(--surface2); }
+
+  .zip-entry-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text);
+  }
+
+  .zip-entry-size { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+
+  .btn-dl-entry {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .btn-dl-entry:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-dl-entry svg { width: 12px; height: 12px; }
+
+  /* ── JSON PREVIEW ── */
+  .preview-box {
+    margin-top: 1rem;
+    display: none;
+  }
+
+  .preview-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  pre.code-preview {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    max-height: 180px;
+    overflow: auto;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  /* ── INFO NOTE ── */
+  .info-note {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    background: var(--info-dim);
+    border: 1px solid #38bdf822;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: #7dd3fc;
+    margin-top: 1rem;
+  }
+
+  .info-note svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── QUALITY LABEL ── */
+  .range-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .range-val {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    min-width: 34px;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    main { padding: 1rem; }
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    box-shadow: 0 8px 32px #00000066;
+    z-index: 999;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    animation: fadeUp 0.25s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  #toast svg { width: 15px; height: 15px; }
+  #toast.success { border-color: #22c55e44; color: var(--success); }
+  #toast.error { border-color: #ef444444; color: var(--danger); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M7 16a4 4 0 0 1-.88-7.903A5 5 0 1 1 15.9 6L16 6a5 5 0 0 1 1 9.9M9 19l3 3m0 0 3-3m-3 3V10"/></svg>
+    </div>
+  ConvertsX
+  </div>
+  <span class="badge-private">🔒 100% in your browser  • By Shiv Kumar </span>
+</header>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="nav-group">
+      <div class="sidebar-label">Images</div>
+      <button class="nav-item active" onclick="showPanel('jpg2pdf', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        JPG → PDF
+        <span class="nav-tag tag-img">IMG</span>
+      </button>
+      <button class="nav-item" onclick="showPanel('png2jpg', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        PNG/WebP → JPG
+        <span class="nav-tag tag-img">IMG</span>
+      </button>
+      <button class="nav-item" onclick="showPanel('jpg2png', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        JPG → PNG
+        <span class="nav-tag tag-img">IMG</span>
+      </button>
+    </div>
+
+    <div class="nav-group">
+      <div class="sidebar-label">Documents</div>
+      <button class="nav-item" onclick="showPanel('pdf2jpg', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        PDF → JPG
+        <span class="nav-tag tag-doc">DOC</span>
+      </button>
+      <button class="nav-item" onclick="showPanel('txt2pdf', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        TXT/MD → PDF
+        <span class="nav-tag tag-doc">DOC</span>
+      </button>
+    </div>
+
+    <div class="nav-group">
+      <div class="sidebar-label">Data</div>
+      <button class="nav-item" onclick="showPanel('csv2json', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="8" y1="9" x2="10" y2="9"/></svg>
+        CSV → JSON
+        <span class="nav-tag tag-data">DATA</span>
+      </button>
+      <button class="nav-item" onclick="showPanel('json2csv', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        JSON → CSV
+        <span class="nav-tag tag-data">DATA</span>
+      </button>
+    </div>
+
+    <div class="nav-group">
+      <div class="sidebar-label">Archives</div>
+      <button class="nav-item" onclick="showPanel('zip', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        ZIP explorer
+        <span class="nav-tag tag-archive">ZIP</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- JPG → PDF -->
+    <div id="panel-jpg2pdf" class="panel active">
+      <div class="page-header">
+        <h1>JPG / PNG → PDF</h1>
+        <p>Combine one or more images into a single multi-page PDF document.</p>
+      </div>
+      <div class="card">
+        <div class="drop-zone" id="dz-jpg2pdf"
+          onclick="document.getElementById('in-jpg2pdf').click()"
+          ondragover="dzOver(event,'dz-jpg2pdf')"
+          ondragleave="dzLeave('dz-jpg2pdf')"
+          ondrop="dzDrop(event,'dz-jpg2pdf','jpg2pdf')">
+          <div class="dz-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#a89cff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <h3>Drop images here</h3>
+          <p>or click to browse your files</p>
+          <span>Accepts .jpg .jpeg .png .webp — multiple files OK</span>
+        </div>
+        <input type="file" id="in-jpg2pdf" accept="image/*" multiple style="display:none" onchange="addFiles('jpg2pdf',this.files)">
+        <div class="file-list" id="fl-jpg2pdf"></div>
+        <div class="options-row">
+          <div class="opt-group">
+            <label>Page size</label>
+            <select id="opt-jpg2pdf-size">
+              <option value="a4">A4 (210×297mm)</option>
+              <option value="letter">US Letter</option>
+              <option value="fit">Fit to image</option>
+            </select>
+          </div>
+          <div class="opt-group">
+            <label>Orientation</label>
+            <select id="opt-jpg2pdf-ori">
+              <option value="portrait">Portrait</option>
+              <option value="landscape">Landscape</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="btn-jpg2pdf" onclick="convert_jpg2pdf()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Convert & download
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PNG → JPG -->
+    <div id="panel-png2jpg" class="panel">
+      <div class="page-header">
+        <h1>PNG / WebP → JPG</h1>
+        <p>Convert transparent or other image formats to compressed JPEG.</p>
+      </div>
+      <div class="card">
+        <div class="drop-zone" id="dz-png2jpg"
+          onclick="document.getElementById('in-png2jpg').click()"
+          ondragover="dzOver(event,'dz-png2jpg')"
+          ondragleave="dzLeave('dz-png2jpg')"
+          ondrop="dzDrop(event,'dz-png2jpg','png2jpg')">
+          <div class="dz-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#a89cff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <h3>Drop PNG or WebP images here</h3>
+          <p>or click to browse</p>
+          <span>.png .webp .bmp .gif</span>
+        </div>
+        <input type="file" id="in-png2jpg" accept=".png,.webp,.bmp,.gif" multiple style="display:none" onchange="addFiles('png2jpg',this.files)">
+        <div class="file-list" id="fl-png2jpg"></div>
+        <div class="options-row">
+          <div class="opt-group">
+            <label>Quality — <span id="q-png2jpg-val">92</span>%</label>
+            <div class="range-row">
+              <input type="range" min="10" max="100" step="1" value="92" id="q-png2jpg"
+                oninput="document.getElementById('q-png2jpg-val').textContent=this.value">
+            </div>
+          </div>
+          <div class="opt-group">
+            <label>Background for transparency</label>
+            <select id="bg-png2jpg">
+              <option value="#ffffff">White</option>
+              <option value="#000000">Black</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="btn-png2jpg" onclick="convert_png2jpg()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Convert all
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JPG → PNG -->
+    <div id="panel-jpg2png" class="panel">
+      <div class="page-header">
+        <h1>JPG → PNG</h1>
+        <p>Convert JPEG images to lossless PNG format.</p>
+      </div>
+      <div class="card">
+        <div class="drop-zone" id="dz-jpg2png"
+          onclick="document.getElementById('in-jpg2png').click()"
+          ondragover="dzOver(event,'dz-jpg2png')"
+          ondragleave="dzLeave('dz-jpg2png')"
+          ondrop="dzDrop(event,'dz-jpg2png','jpg2png')">
+          <div class="dz-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#a89cff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <h3>Drop JPEG images here</h3>
+          <p>or click to browse</p>
+          <span>.jpg .jpeg</span>
+        </div>
+        <input type="file" id="in-jpg2png" accept=".jpg,.jpeg" multiple style="display:none" onchange="addFiles('jpg2png',this.files)">
+        <div class="file-list" id="fl-jpg2png"></div>
+        <div class="options-row">
+          <button class="btn btn-primary" id="btn-jpg2png" onclick="convert_jpg2png()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Convert all
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDF → JPG -->
+    <div id="panel-pdf2jpg" class="panel">
+      <div class="page-header">
+        <h1>PDF → JPG</h1>
+        <p>Render every page of a PDF as a separate JPG image.</p>
+      </div>
+      <div class="card">
+        <div class="drop-zone" id="dz-pdf2jpg"
+          onclick="document.getElementById('in-pdf2jpg').click()"
+          ondragover="dzOver(event,'dz-pdf2jpg')"
+          ondragleave="dzLeave('dz-pdf2jpg')"
+          ondrop="dzDrop(event,'dz-pdf2jpg','pdf2jpg')">
+          <div class="dz-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <h3>Drop a PDF file here</h3>
+          <p>or click to browse</p>
+          <span>.pdf</span>
+        </div>
+        <input type="file" id="in-pdf2jpg" accept=".pdf,application/pdf" style="display:none" onchange="addFiles('pdf2jpg',this.files)">
+        <div class="file-list" id="fl-pdf2jpg"></div>
+        <div class="options-row">
+          <div class="opt-group">
+            <label>Render scale</label>
+            <select id="opt-pdf-scale">
+              <option value="1">1× (96 dpi)</option>
+              <option value="2" selected>2× (192 dpi)</option>
+              <option value="3">3× (288 dpi)</option>
+            </select>
+          </div>
+          <div class="opt-group">
+            <label>JPG quality — <span id="q-pdf-val">90</span>%</label>
+            <input type="range" min="10" max="100" step="1" value="90" id="q-pdf"
+              oninput="document.getElementById('q-pdf-val').textContent=this.value">
+          </div>
+          <button class="btn btn-primary" id="btn-pdf2jpg" onclick="convert_pdf2jpg()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Render all pages
+          </button>
+        </div>
+        <div class="progress-wrap" id="pdf2jpg-progress">
+          <div class="progress-label" id="pdf2jpg-progress-txt">Rendering…</div>
+          <div class="progress-bar"><div class="progress-fill" id="pdf2jpg-bar"></div></div>
+        </div>
+      </div>
+      <div class="info-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        PDF rendering uses Mozilla's pdf.js library, loaded on demand. Nothing leaves your device.
+      </div>
+    </div>
+
+    <!-- TXT → PDF -->
+    <div id="panel-txt2pdf" class="panel">
+      <div class="page-header">
+        <h1>TXT / Markdown → PDF</h1>
+        <p>Turn plain text or markdown files into a paginated PDF document.</p>
+      </div>
+      <div class="card">
+        <div class="drop-zone" id="dz-txt2pdf"
+          onclick="document.getElementById('in-txt2pdf').click()"
+          ondragover="dzOver(event,'dz-txt2pdf')"
+          ondragleave="dzLeave('dz-txt2pdf')"
+          ondrop="dzDrop(event,'dz-txt2pdf','txt2pdf')">
+          <div class="dz-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <h3>Drop a text file here</h3>
+          <p>or click to browse</p>
+          <span>.txt .md .markdown</span>
+        </div>
+        <input type="file" id="in-txt2pdf" accept=".txt,.md,.markdown,text/plain" multiple style="display:none" onchange="addFiles('txt2pdf',this.files)">
+        <div class="file-list" id="fl-txt2pdf"></div>
+        <div class="options-row">
+          <div class="opt-group">
+            <label>Font size</label>
+            <select id="opt-txt-fs">
+              <option value="11">11px</option>
+              <option value="13" selected>13px</option>
+              <option value="15">15px</option>
+            </select>
+          </div>
+          <div class="opt-group">
+            <label>Page margin</label>
+            <select id="opt-txt-mg">
+              <option value="15">Narrow</option>
+              <option value="25" selected>Normal</option>
+              <option value="40">Wide</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="btn-txt2pdf" onclick="convert_txt2pdf()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Convert & download
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CSV → JSON -->
+    <div id="panel-csv2json" class="panel">
+      <div class="page-header">
+        <h1>CSV → JSON</h1>
+        <p>Parse a CSV spreadsheet into structured JSON data.</p>
+      </div>
+      <div class="card">
+        <div class="drop-zone" id="dz-csv2json"
+          onclick="document.getElementById('in-csv2json').click()"
+          ondragover="dzOver(event,'dz-csv2json')"
+          ondragleave="dzLeave('dz-csv2json')"
+          ondrop="dzDrop(event,'dz-csv2json','csv2json')">
+          <div class="dz-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+          </div>
+          <h3>Drop a CSV file here</h3>
+          <p>or click to browse</p>
+          <span>.csv</span>
+        </div>
+        <input type="file" id="in-csv2json" accept=".csv,text/csv" style="display:none" onchange="addFiles('csv2json',this.files)">
+        <div class="file-list" id="fl-csv2json"></div>
+        <div class="options-row">
+          <div class="opt-group">
+            <label>Delimiter</label>
+            <select id="opt-csv-delim">
+              <option value=",">Comma ( , )</option>
+              <option value=";">Semicolon ( ; )</option>
+              <option value="&#9;">Tab</option>
+            </select>
+          </div>
+          <div class="opt-group">
+            <label>Output format</label>
+            <select id="opt-csv-fmt">
+              <option value="array">Array of objects</option>
+              <option value="matrix">Matrix (array of arrays)</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="btn-csv2json" onclick="convert_csv2json()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Convert & download
+          </button>
+        </div>
+        <div class="preview-box" id="csv-preview">
+          <div class="preview-label">JSON preview — first 4 rows</div>
+          <pre class="code-preview" id="csv-preview-text"></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- JSON → CSV -->
+    <div id="panel-json2csv" class="panel">
+      <div class="page-header">
+        <h1>JSON → CSV</h1>
+        <p>Flatten a JSON array of objects into a CSV spreadsheet.</p>
+      </div>
+      <div class="card">
+        <div class="drop-zone" id="dz-json2csv"
+          onclick="document.getElementById('in-json2csv').click()"
+          ondragover="dzOver(event,'dz-json2csv')"
+          ondragleave="dzLeave('dz-json2csv')"
+          ondrop="dzDrop(event,'dz-json2csv','json2csv')">
+          <div class="dz-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+          </div>
+          <h3>Drop a JSON file here</h3>
+          <p>or click to browse</p>
+          <span>.json</span>
+        </div>
+        <input type="file" id="in-json2csv" accept=".json,application/json" style="display:none" onchange="addFiles('json2csv',this.files)">
+        <div class="file-list" id="fl-json2csv"></div>
+        <div class="options-row">
+          <button class="btn btn-primary" id="btn-json2csv" onclick="convert_json2csv()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Convert & download
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZIP -->
+    <div id="panel-zip" class="panel">
+      <div class="page-header">
+        <h1>ZIP explorer</h1>
+        <p>Browse and extract files from any ZIP archive — no server needed.</p>
+      </div>
+      <div class="card">
+        <div class="drop-zone" id="dz-zip"
+          onclick="document.getElementById('in-zip').click()"
+          ondragover="dzOver(event,'dz-zip')"
+          ondragleave="dzLeave('dz-zip')"
+          ondrop="dzDrop(event,'dz-zip','zip')">
+          <div class="dz-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </div>
+          <h3>Drop a ZIP file here</h3>
+          <p>or click to browse</p>
+          <span>.zip</span>
+        </div>
+        <input type="file" id="in-zip" accept=".zip,application/zip" style="display:none" onchange="openZip(this.files[0])">
+        <div id="zip-content" style="display:none">
+          <div class="zip-header">
+            <div class="zip-name">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span id="zip-fname">archive.zip</span>
+              <span class="zip-count" id="zip-count">0 files</span>
+            </div>
+            <button class="btn btn-ghost" onclick="dlAllZip()" style="font-size:12px;padding:6px 12px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download all
+            </button>
+          </div>
+          <div class="zip-entries" id="zip-entries"></div>
+        </div>
+        <div class="info-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          ZIP files are read using JSZip entirely in your browser. Nothing is uploaded anywhere.
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- TOAST -->
+<div id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toast-msg">Done!</span>
+</div>
+
+<!-- LIBS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// ── STATE ──
+const keys = ['jpg2pdf','png2jpg','jpg2png','pdf2jpg','txt2pdf','csv2json','json2csv','zip'];
+const state = {};
+keys.forEach(k => state[k] = []);
+
+// ── NAV ──
+function showPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── DRAG/DROP ──
+function dzOver(e,id){e.preventDefault();document.getElementById(id).classList.add('over');}
+function dzLeave(id){document.getElementById(id).classList.remove('over');}
+function dzDrop(e,id,key){
+  e.preventDefault();
+  document.getElementById(id).classList.remove('over');
+  if(key==='zip') openZip(e.dataTransfer.files[0]);
+  else addFiles(key, e.dataTransfer.files);
+}
+
+// ── FILES ──
+function fmtSize(b){
+  if(b<1024) return b+'B';
+  if(b<1048576) return Math.round(b/1024)+'KB';
+  return (b/1048576).toFixed(1)+'MB';
+}
+
+function fileIcon(file){
+  const t = file.type;
+  if(t.includes('pdf')) return {cls:'pdf',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>'};
+  if(t.includes('image')) return {cls:'img',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'};
+  if(t.includes('json')||file.name.endsWith('.json')) return {cls:'data',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>'};
+  if(t.includes('csv')||file.name.endsWith('.csv')) return {cls:'data',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>'};
+  if(t.includes('zip')) return {cls:'zip',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'};
+  return {cls:'doc',svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>'};
+}
+
+function addFiles(key, files){
+  for(const f of files) state[key].push({file:f,status:'ready'});
+  renderList(key);
+  const btn = document.getElementById('btn-'+key);
+  if(btn) btn.disabled = !state[key].length;
+  if(key==='csv2json' && state[key].length) previewCSV(state[key][state[key].length-1].file);
+}
+
+function removeFile(key,idx){
+  state[key].splice(idx,1);
+  renderList(key);
+  const btn=document.getElementById('btn-'+key);
+  if(btn) btn.disabled=!state[key].length;
+}
+
+function setStatus(key,idx,status){
+  if(state[key][idx]) state[key][idx].status=status;
+  renderList(key);
+}
+
+function renderList(key){
+  const el=document.getElementById('fl-'+key);
+  if(!el) return;
+  el.innerHTML='';
+  state[key].forEach((item,i)=>{
+    const ic=fileIcon(item.file);
+    const div=document.createElement('div');
+    div.className='file-item';
+    div.innerHTML=`
+      <div class="file-icon ${ic.cls}">${ic.svg}</div>
+      <div class="file-info">
+        <div class="file-name" title="${item.file.name}">${item.file.name}</div>
+        <div class="file-size">${fmtSize(item.file.size)}</div>
+      </div>
+      <span class="file-status st-${item.status}">${item.status}</span>
+      <button class="file-remove" onclick="removeFile('${key}',${i})" aria-label="Remove">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>`;
+    el.appendChild(div);
+  });
+}
+
+// ── UTILS ──
+function readAsDataURL(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsDataURL(file);});}
+function readAsText(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsText(file);});}
+function readAsArrayBuffer(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsArrayBuffer(file);});}
+
+function loadImg(src){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src;});}
+
+function dlBlob(blob,name){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},600);
+}
+
+function toast(msg,type='success'){
+  const el=document.getElementById('toast');
+  el.className=type;
+  document.getElementById('toast-msg').textContent=msg;
+  el.style.display='flex';
+  setTimeout(()=>{el.style.display='none';},3000);
+}
+
+// ── JPG → PDF ──
+async function convert_jpg2pdf(){
+  if(!state.jpg2pdf.length)return;
+  const {jsPDF}=window.jspdf;
+  const size=document.getElementById('opt-jpg2pdf-size').value;
+  const ori=document.getElementById('opt-jpg2pdf-ori').value;
+  let pdf=null;
+  for(let i=0;i<state.jpg2pdf.length;i++){
+    setStatus('jpg2pdf',i,'processing');
+    try{
+      const data=await readAsDataURL(state.jpg2pdf[i].file);
+      const img=await loadImg(data);
+      const iw=img.naturalWidth,ih=img.naturalHeight;
+      let pw,ph;
+      if(size==='fit'){pw=iw*0.264583;ph=ih*0.264583;}
+      else if(size==='a4'){pw=210;ph=297;}
+      else{pw=215.9;ph=279.4;}
+      const land=ori==='landscape';
+      if(!pdf) pdf=new jsPDF({orientation:land?'l':'p',unit:'mm',format:size==='fit'?[pw,ph]:size});
+      else pdf.addPage(size==='fit'?[pw,ph]:size,land?'l':'p');
+      const ratio=Math.min((land?ph:pw)/iw,(land?pw:ph)/ih);
+      const dw=iw*ratio,dh=ih*ratio;
+      const x=((land?ph:pw)-dw)/2,y=((land?pw:ph)-dh)/2;
+      pdf.addImage(data,'JPEG',x,y,dw,dh);
+      setStatus('jpg2pdf',i,'done');
+    }catch(e){setStatus('jpg2pdf',i,'error');}
+  }
+  if(pdf){pdf.save('images-converted.pdf');toast('PDF saved!');}
+}
+
+// ── PNG → JPG ──
+async function convert_png2jpg(){
+  const q=parseInt(document.getElementById('q-png2jpg').value)/100;
+  const bg=document.getElementById('bg-png2jpg').value;
+  for(let i=0;i<state.png2jpg.length;i++){
+    setStatus('png2jpg',i,'processing');
+    try{
+      const data=await readAsDataURL(state.png2jpg[i].file);
+      const img=await loadImg(data);
+      const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;
+      const ctx=c.getContext('2d');ctx.fillStyle=bg;ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0);
+      await new Promise(res=>c.toBlob(b=>{dlBlob(b,state.png2jpg[i].file.name.replace(/\.[^.]+$/,'.jpg'));setStatus('png2jpg',i,'done');res();},'image/jpeg',q));
+    }catch(e){setStatus('png2jpg',i,'error');}
+  }
+  toast('All files converted!');
+}
+
+// ── JPG → PNG ──
+async function convert_jpg2png(){
+  for(let i=0;i<state.jpg2png.length;i++){
+    setStatus('jpg2png',i,'processing');
+    try{
+      const data=await readAsDataURL(state.jpg2png[i].file);
+      const img=await loadImg(data);
+      const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;
+      c.getContext('2d').drawImage(img,0,0);
+      await new Promise(res=>c.toBlob(b=>{dlBlob(b,state.jpg2png[i].file.name.replace(/\.[^.]+$/,'.png'));setStatus('jpg2png',i,'done');res();},'image/png'));
+    }catch(e){setStatus('jpg2png',i,'error');}
+  }
+  toast('All files converted!');
+}
+
+// ── PDF → JPG ──
+async function convert_pdf2jpg(){
+  if(!state.pdf2jpg.length)return;
+  const scale=parseFloat(document.getElementById('opt-pdf-scale').value);
+  const q=parseInt(document.getElementById('q-pdf').value)/100;
+  const prog=document.getElementById('pdf2jpg-progress');
+  const bar=document.getElementById('pdf2jpg-bar');
+  const txt=document.getElementById('pdf2jpg-progress-txt');
+  prog.style.display='block';
+  for(let fi=0;fi<state.pdf2jpg.length;fi++){
+    setStatus('pdf2jpg',fi,'processing');
+    try{
+      if(!window.pdfjsLib){
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        await new Promise(r=>{s.onload=r;document.head.appendChild(s);});
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
+      const ab=await readAsArrayBuffer(state.pdf2jpg[fi].file);
+      const pdf=await window.pdfjsLib.getDocument({data:ab}).promise;
+      const total=pdf.numPages;
+      const base=state.pdf2jpg[fi].file.name.replace(/\.pdf$/i,'');
+      for(let p=1;p<=total;p++){
+        txt.textContent=`Rendering page ${p} of ${total}…`;
+        bar.style.width=Math.round(p/total*100)+'%';
+        const page=await pdf.getPage(p);
+        const vp=page.getViewport({scale});
+        const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;
+        await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+        await new Promise(res=>c.toBlob(b=>{dlBlob(b,`${base}_page${p}.jpg`);res();},'image/jpeg',q));
+        await new Promise(r=>setTimeout(r,80));
+      }
+      setStatus('pdf2jpg',fi,'done');
+    }catch(e){setStatus('pdf2jpg',fi,'error');console.error(e);}
+  }
+  prog.style.display='none';
+  toast('All pages exported!');
+}
+
+// ── TXT → PDF ──
+async function convert_txt2pdf(){
+  if(!state.txt2pdf.length)return;
+  const {jsPDF}=window.jspdf;
+  const fs=parseInt(document.getElementById('opt-txt-fs').value);
+  const mg=parseInt(document.getElementById('opt-txt-mg').value);
+  for(let i=0;i<state.txt2pdf.length;i++){
+    setStatus('txt2pdf',i,'processing');
+    try{
+      const text=await readAsText(state.txt2pdf[i].file);
+      const pdf=new jsPDF({unit:'mm',format:'a4'});
+      const pw=210-mg*2*0.264583;
+      pdf.setFontSize(fs);
+      const lines=pdf.splitTextToSize(text,pw);
+      let y=mg*0.264583+10;
+      const lh=fs*0.38;
+      lines.forEach(line=>{
+        if(y>290-mg*0.264583){pdf.addPage();y=mg*0.264583+10;}
+        pdf.text(line,mg*0.264583,y);
+        y+=lh;
+      });
+      pdf.save(state.txt2pdf[i].file.name.replace(/\.[^.]+$/,'.pdf'));
+      setStatus('txt2pdf',i,'done');
+    }catch(e){setStatus('txt2pdf',i,'error');}
+  }
+  toast('PDF saved!');
+}
+
+// ── CSV → JSON ──
+async function previewCSV(file){
+  const text=await readAsText(file);
+  const delim=document.getElementById('opt-csv-delim').value;
+  const rows=text.trim().split(/\r?\n/).slice(0,5);
+  const headers=rows[0].split(delim).map(h=>h.trim().replace(/^"|"$/g,''));
+  const data=rows.slice(1).map(r=>{
+    const vals=r.split(delim);
+    const obj={};
+    headers.forEach((h,i)=>obj[h]=(vals[i]||'').trim().replace(/^"|"$/g,''));
+    return obj;
+  });
+  const el=document.getElementById('csv-preview');
+  el.style.display='block';
+  document.getElementById('csv-preview-text').textContent=JSON.stringify(data,null,2);
+}
+
+async function convert_csv2json(){
+  if(!state.csv2json.length)return;
+  for(let i=0;i<state.csv2json.length;i++){
+    setStatus('csv2json',i,'processing');
+    try{
+      const text=await readAsText(state.csv2json[i].file);
+      const delim=document.getElementById('opt-csv-delim').value;
+      const fmt=document.getElementById('opt-csv-fmt').value;
+      const rows=text.trim().split(/\r?\n/);
+      const headers=rows[0].split(delim).map(h=>h.trim().replace(/^"|"$/g,''));
+      let result;
+      if(fmt==='array'){
+        result=rows.slice(1).map(r=>{const v=r.split(delim);const o={};headers.forEach((h,j)=>o[h]=(v[j]||'').trim().replace(/^"|"$/g,''));return o;});
+      }else{
+        result=[headers,...rows.slice(1).map(r=>r.split(delim).map(v=>v.trim().replace(/^"|"$/g,'')))];
+      }
+      const blob=new Blob([JSON.stringify(result,null,2)],{type:'application/json'});
+      dlBlob(blob,state.csv2json[i].file.name.replace(/\.csv$/i,'.json'));
+      setStatus('csv2json',i,'done');
+    }catch(e){setStatus('csv2json',i,'error');}
+  }
+  toast('JSON file saved!');
+}
+
+// ── JSON → CSV ──
+async function convert_json2csv(){
+  if(!state.json2csv.length)return;
+  for(let i=0;i<state.json2csv.length;i++){
+    setStatus('json2csv',i,'processing');
+    try{
+      const text=await readAsText(state.json2csv[i].file);
+      const data=JSON.parse(text);
+      const arr=Array.isArray(data)?data:[data];
+      const keys=[...new Set(arr.flatMap(o=>Object.keys(o)))];
+      const csvEscape=v=>{const s=String(v??'');return(s.includes(',')||s.includes('"')||s.includes('\n'))?`"${s.replace(/"/g,'""')}"`:`${s}`;};
+      const csvRows=[keys.join(','),...arr.map(row=>keys.map(k=>csvEscape(row[k])).join(','))];
+      const blob=new Blob([csvRows.join('\n')],{type:'text/csv'});
+      dlBlob(blob,state.json2csv[i].file.name.replace(/\.json$/i,'.csv'));
+      setStatus('json2csv',i,'done');
+    }catch(e){setStatus('json2csv',i,'error');}
+  }
+  toast('CSV file saved!');
+}
+
+// ── ZIP ──
+window._zip=null;
+
+async function openZip(file){
+  if(!file)return;
+  try{
+    const ab=await readAsArrayBuffer(file);
+    const zip=await JSZip.loadAsync(ab);
+    window._zip=zip;
+    document.getElementById('zip-content').style.display='block';
+    document.getElementById('zip-fname').textContent=file.name;
+    const entries=Object.values(zip.files).filter(f=>!f.dir).sort((a,b)=>a.name.localeCompare(b.name));
+    document.getElementById('zip-count').textContent=entries.length+' file'+(entries.length!==1?'s':'');
+    const el=document.getElementById('zip-entries');
+    el.innerHTML='';
+    if(!entries.length){el.innerHTML='<div style="padding:1.5rem;text-align:center;color:var(--text3);font-size:13px">No files in this archive</div>';return;}
+    entries.forEach(entry=>{
+      const ext=(entry.name.split('.').pop()||'').toLowerCase();
+      const isImg=['jpg','jpeg','png','gif','webp','svg'].includes(ext);
+      const isPdf=ext==='pdf';
+      const row=document.createElement('div');
+      row.className='zip-entry';
+      row.innerHTML=`
+        <div class="file-icon ${isPdf?'pdf':isImg?'img':'doc'}" style="width:28px;height:28px;flex-shrink:0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px">
+            ${isImg?'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>'
+            :isPdf?'<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>'
+            :'<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>'}
+          </svg>
+        </div>
+        <span class="zip-entry-name" title="${entry.name}">${entry.name}</span>
+        <span class="zip-entry-size">${entry._data?fmtSize(entry._data.uncompressedSize||0):''}</span>
+        <button class="btn-dl-entry" onclick="dlZipEntry('${entry.name.replace(/'/g,"\\'")}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Extract
+        </button>`;
+      el.appendChild(row);
+    });
+  }catch(e){toast('Could not read ZIP file','error');}
+}
+
+async function dlZipEntry(name){
+  try{
+    const blob=await window._zip.file(name).async('blob');
+    dlBlob(blob,name.split('/').pop());
+    toast('File extracted!');
+  }catch(e){toast('Extraction failed','error');}
+}
+
+async function dlAllZip(){
+  if(!window._zip)return;
+  const entries=Object.values(window._zip.files).filter(f=>!f.dir);
+  for(const f of entries){
+    const blob=await f.async('blob');
+    dlBlob(blob,f.name.split('/').pop());
+    await new Promise(r=>setTimeout(r,120));
+  }
+  toast('All files extracted!');
+}
+</script>
+</body>
+</html>
